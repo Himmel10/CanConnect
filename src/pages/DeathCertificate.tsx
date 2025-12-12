@@ -6,6 +6,7 @@ import { Shield, ArrowLeft, FileText } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
+import { addApplication } from "@/lib/applicationStorage";
 import {
   Select,
   SelectContent,
@@ -13,18 +14,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Logo } from "@/components/Logo";
 
 const DeathCertificate = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    deceasedName: "",
+    dateOfDeath: "",
+    placeOfDeath: "",
+    dateOfBirth: "",
+    age: "",
+    relationship: "",
+    purpose: "",
+    copies: "",
+    paymentMethod: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     setTimeout(() => {
-      toast.success("Death Certificate request submitted successfully!");
-      navigate("/tracking");
+      try {
+        const newApp = addApplication("Death Certificate", formData);
+        toast.success(`Application submitted! Reference ID: ${newApp.id}`);
+        navigate(`/payment/${newApp.id}`);
+      } catch (error) {
+        toast.error("Failed to submit application. Please try again.");
+        setIsSubmitting(false);
+      }
     }, 1500);
   };
 
@@ -32,10 +60,7 @@ const DeathCertificate = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-primary">CanConnect</span>
-          </Link>
+          <Logo />
         </div>
       </header>
 
@@ -59,34 +84,68 @@ const DeathCertificate = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="deceasedName">Deceased's Full Name</Label>
-                <Input id="deceasedName" required placeholder="Juan Dela Cruz" />
+                <Input 
+                  id="deceasedName" 
+                  required 
+                  placeholder="Juan Dela Cruz"
+                  value={formData.deceasedName}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfDeath">Date of Death</Label>
-                  <Input id="dateOfDeath" type="date" required />
+                  <Input 
+                    id="dateOfDeath" 
+                    type="date" 
+                    required 
+                    value={formData.dateOfDeath}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="placeOfDeath">Place of Death</Label>
-                  <Input id="placeOfDeath" required placeholder="Candelaria, Quezon" />
+                  <Input 
+                    id="placeOfDeath" 
+                    required 
+                    placeholder="Candelaria, Quezon"
+                    value={formData.placeOfDeath}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input id="dateOfBirth" type="date" required />
+                  <Input 
+                    id="dateOfBirth" 
+                    type="date" 
+                    required 
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="age">Age at Death</Label>
-                  <Input id="age" type="number" required />
+                  <Input 
+                    id="age" 
+                    type="number" 
+                    required 
+                    value={formData.age}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="relationship">Your Relationship to Deceased</Label>
-                <Select required>
+                <Select 
+                  value={formData.relationship}
+                  onValueChange={(value) => handleSelectChange("relationship", value)}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select relationship" />
                   </SelectTrigger>
@@ -102,7 +161,11 @@ const DeathCertificate = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="purpose">Purpose of Request</Label>
-                <Select required>
+                <Select 
+                  value={formData.purpose}
+                  onValueChange={(value) => handleSelectChange("purpose", value)}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select purpose" />
                   </SelectTrigger>
@@ -118,7 +181,32 @@ const DeathCertificate = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="copies">Number of Copies</Label>
-                <Input id="copies" type="number" min="1" defaultValue="1" required />
+                <Input 
+                  id="copies" 
+                  type="number" 
+                  min="1" 
+                  defaultValue="1" 
+                  required 
+                  value={formData.copies}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select 
+                  value={formData.paymentMethod}
+                  onValueChange={(value) => handleSelectChange("paymentMethod", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="e-wallet">E-Wallet</SelectItem>
+                    <SelectItem value="cash">Cash Payment</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="rounded-lg border bg-muted/50 p-4">

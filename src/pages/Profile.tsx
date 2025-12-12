@@ -10,14 +10,14 @@ const Profile = () => {
 
   // Mock user data - in a real app, this would come from an API/context
   const userProfile = {
-    name: "Juan Dela Cruz",
-    email: "juan.delacruz@email.com",
+    name: "Joey B. Mondragon",
+    email: "joeymondragon90@gmail.com",
     phone: "09171234567",
-    address: "123 Main Street, Barangay 1, Candelaria, Quezon",
+    address: "Purok-3, Lininti-an, Cantilan, Surigao del Sur",
     dateOfBirth: "January 15, 1985",
     idType: "National ID",
     idNumber: "123456789012-3",
-    joinedDate: "November 1, 2024",
+    joinedDate: "December 1, 2025",
     profileComplete: 85,
   };
 
@@ -92,13 +92,12 @@ const Profile = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Profile Header */}
         <Card className="mb-8">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                  <span className="text-2xl font-bold text-primary">JD</span>
+                  <span className="text-2xl font-bold text-primary">JM</span>
                 </div>
                 <div>
                   <CardTitle className="text-3xl">{userProfile.name}</CardTitle>

@@ -6,6 +6,7 @@ import { Shield, ArrowLeft, FileCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
+import { addApplication } from "@/lib/applicationStorage";
 import {
   Select,
   SelectContent,
@@ -13,18 +14,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Logo } from "@/components/Logo";
 
 const CommunityTaxCertificate = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    birthDate: "",
+    sex: "",
+    civilStatus: "",
+    address: "",
+    citizenship: "",
+    occupation: "",
+    annualIncome: "",
+    paymentMethod: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     setTimeout(() => {
-      toast.success("Cedula/CTC request submitted successfully!");
-      navigate("/tracking");
+      try {
+        const newApp = addApplication("Community Tax Certificate", formData);
+        toast.success(`Application submitted! Reference ID: ${newApp.id}`);
+        navigate(`/payment/${newApp.id}`);
+      } catch (error) {
+        toast.error("Failed to submit application. Please try again.");
+        setIsSubmitting(false);
+      }
     }, 1500);
   };
 
@@ -32,10 +60,7 @@ const CommunityTaxCertificate = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-primary">CanConnect</span>
-          </Link>
+          <Logo />
         </div>
       </header>
 
@@ -59,17 +84,33 @@ const CommunityTaxCertificate = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
-                <Input id="fullName" required placeholder="Juan Dela Cruz" />
+                <Input 
+                  id="fullName" 
+                  required 
+                  placeholder="Juan Dela Cruz"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="birthDate">Date of Birth</Label>
-                  <Input id="birthDate" type="date" required />
+                  <Input 
+                    id="birthDate" 
+                    type="date" 
+                    required 
+                    value={formData.birthDate}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sex">Sex</Label>
-                  <Select required>
+                  <Select 
+                    value={formData.sex}
+                    onValueChange={(value) => handleSelectChange("sex", value)}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -83,7 +124,11 @@ const CommunityTaxCertificate = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="civilStatus">Civil Status</Label>
-                <Select required>
+                <Select 
+                  value={formData.civilStatus}
+                  onValueChange={(value) => handleSelectChange("civilStatus", value)}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select civil status" />
                   </SelectTrigger>
@@ -98,23 +143,64 @@ const CommunityTaxCertificate = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="address">Complete Address</Label>
-                <Input id="address" required placeholder="House No., Street, Barangay" />
+                <Input 
+                  id="address" 
+                  required 
+                  placeholder="House No., Street, Barangay"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="citizenship">Citizenship</Label>
-                <Input id="citizenship" required defaultValue="Filipino" />
+                <Input 
+                  id="citizenship" 
+                  required 
+                  defaultValue="Filipino"
+                  value={formData.citizenship}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="occupation">Occupation</Label>
-                  <Input id="occupation" required />
+                  <Input 
+                    id="occupation" 
+                    required 
+                    value={formData.occupation}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="annualIncome">Annual Gross Income</Label>
-                  <Input id="annualIncome" type="number" required placeholder="₱0.00" />
+                  <Input 
+                    id="annualIncome" 
+                    type="number" 
+                    required 
+                    placeholder="₱0.00"
+                    value={formData.annualIncome}
+                    onChange={handleInputChange}
+                  />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select 
+                  value={formData.paymentMethod}
+                  onValueChange={(value) => handleSelectChange("paymentMethod", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="e-wallet">E-Wallet</SelectItem>
+                    <SelectItem value="cash">Cash Payment</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="rounded-lg border bg-muted/50 p-4">

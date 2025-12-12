@@ -2,57 +2,47 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Shield, ArrowLeft, Search, Clock, CheckCircle, AlertCircle, FileText } from "lucide-react";
+import { Shield, ArrowLeft, Search, Clock, CheckCircle, AlertCircle, FileText, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { searchApplications, getAllApplications, getApplicationStats } from "@/lib/applicationStorage";
 
 const Tracking = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [applications, setApplications] = useState<any[]>([]);
+  const [stats, setStats] = useState(getApplicationStats());
 
-  const applications = [
-    {
-      id: "BRG-2024-001",
-      type: "Barangay Clearance",
-      status: "processing",
-      date: "2024-11-15",
-      steps: [
-        { label: "Submitted", completed: true },
-        { label: "Under Review", completed: true },
-        { label: "Processing", completed: false },
-        { label: "Ready for Pickup", completed: false },
-      ],
-    },
-    {
-      id: "BIZ-2024-045",
-      type: "Business Permit",
-      status: "approved",
-      date: "2024-11-10",
-      steps: [
-        { label: "Submitted", completed: true },
-        { label: "Under Review", completed: true },
-        { label: "Processing", completed: true },
-        { label: "Approved", completed: true },
-      ],
-    },
-    {
-      id: "POL-2024-089",
-      type: "Police Clearance",
-      status: "pending",
-      date: "2024-11-14",
-      steps: [
-        { label: "Submitted", completed: true },
-        { label: "Under Review", completed: false },
-        { label: "Processing", completed: false },
-        { label: "Ready for Pickup", completed: false },
-      ],
-    },
-  ];
+  // Load applications from storage on component mount and listen for changes
+  useEffect(() => {
+    const loadApplications = () => {
+      const allApps = getAllApplications();
+      setApplications(allApps);
+      setStats(getApplicationStats());
+    };
+
+    loadApplications();
+
+    // Listen for storage changes from other tabs/windows
+    window.addEventListener("storage", loadApplications);
+    
+    // Also set up a listener for storage changes in the same window
+    const handleStorageChange = () => {
+      loadApplications();
+    };
+    window.addEventListener("appStorageUpdated", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", loadApplications);
+      window.removeEventListener("appStorageUpdated", handleStorageChange);
+    };
+  }, []);
 
   const getStatusBadge = (status: string) => {
     const variants = {
       processing: { icon: Clock, text: "Processing", className: "bg-primary text-primary-foreground" },
-      approved: { icon: CheckCircle, text: "Approved", className: "bg-success text-success-foreground" },
-      pending: { icon: AlertCircle, text: "Pending Review", className: "bg-warning text-warning-foreground" },
+      approved: { icon: CheckCircle, text: "Approved", className: "bg-green-600 text-white" },
+      pending: { icon: AlertCircle, text: "Pending Review", className: "bg-yellow-600 text-white" },
+      rejected: { icon: AlertCircle, text: "Rejected", className: "bg-red-600 text-white" },
     };
     
     const config = variants[status as keyof typeof variants] || variants.pending;
@@ -97,6 +87,42 @@ const Tracking = () => {
           </p>
         </div>
 
+        {/* Statistics Section */}
+        {applications.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-5 mb-8">
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm text-muted-foreground mb-1">Total</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm text-muted-foreground mb-1">Pending</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm text-muted-foreground mb-1">Processing</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.processing}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm text-muted-foreground mb-1">Approved</p>
+                <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-sm text-muted-foreground mb-1">Rejected</p>
+                <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <div className="mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -129,6 +155,23 @@ const Tracking = () => {
                         day: 'numeric' 
                       })}
                     </p>
+                    {app.paymentStatus && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Payment Status:</span>
+                        <span className={`text-sm font-semibold ${
+                          app.paymentStatus === 'completed' 
+                            ? 'text-green-600' 
+                            : 'text-yellow-600'
+                        }`}>
+                          {app.paymentStatus === 'completed' ? '✓ Paid' : '⏳ Pending'}
+                        </span>
+                      </div>
+                    )}
+                    {app.transactionId && (
+                      <p className="text-sm text-muted-foreground">
+                        Transaction ID: <span className="font-mono font-medium text-foreground">{app.transactionId}</span>
+                      </p>
+                    )}
                   </div>
                   <div>
                     {getStatusBadge(app.status)}
@@ -136,12 +179,12 @@ const Tracking = () => {
                 </div>
 
                 <div className="space-y-2">
-                  {app.steps.map((step, index) => (
+                  {app.steps.map((step: any, index: number) => (
                     <div key={index} className="flex items-center gap-3">
                       <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
                         step.completed 
-                          ? 'bg-success text-success-foreground' 
-                          : 'bg-muted text-muted-foreground'
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-gray-200 text-gray-500'
                       }`}>
                         {step.completed ? (
                           <CheckCircle className="h-4 w-4" />
@@ -157,9 +200,17 @@ const Tracking = () => {
                 </div>
 
                 {app.status === 'approved' && (
-                  <div className="mt-4 rounded-lg border border-success bg-success/10 p-4">
-                    <p className="text-sm font-medium text-success-foreground">
+                  <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
+                    <p className="text-sm font-medium text-green-800">
                       Your document is ready for pickup at the Municipal Office during office hours (8:00 AM - 5:00 PM, Monday to Friday)
+                    </p>
+                  </div>
+                )}
+
+                {app.status === 'rejected' && (
+                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                    <p className="text-sm font-medium text-red-800">
+                      Your application was rejected. Please contact the office for more information.
                     </p>
                   </div>
                 )}
@@ -167,17 +218,30 @@ const Tracking = () => {
             </Card>
           ))}
 
-          {filteredApplications.length === 0 && (
+          {applications.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Plus className="mb-4 h-12 w-12 text-muted-foreground" />
+                <p className="text-lg font-medium">No applications yet</p>
+                <p className="text-sm text-muted-foreground text-center mb-4">
+                  Start by submitting an application for a service from your dashboard
+                </p>
+                <Link to="/dashboard">
+                  <Button>Go to Dashboard</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : filteredApplications.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
                 <p className="text-lg font-medium">No applications found</p>
                 <p className="text-sm text-muted-foreground">
-                  Try adjusting your search or submit a new application
+                  Try adjusting your search terms
                 </p>
               </CardContent>
             </Card>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

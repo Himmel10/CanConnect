@@ -8,19 +8,53 @@ import { Shield, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
+import { addApplication } from "@/lib/applicationStorage";
+import { Logo } from "@/components/Logo";
 
 const BarangayClearance = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    birthDate: "",
+    civilStatus: "",
+    address: "",
+    email: "",
+    phone: "",
+    purpose: "",
+    additionalInfo: "",
+    paymentMethod: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
     setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Application submitted successfully! You will receive updates via SMS and email.");
-      navigate("/dashboard");
+      try {
+        // Add application to storage
+        const newApp = addApplication("Barangay Clearance", formData);
+        
+        setIsLoading(false);
+        toast.success(`Application submitted successfully! Your Reference ID is: ${newApp.id}`);
+        
+        // Navigate to payment page with the new application ID
+        navigate(`/payment/${newApp.id}`);
+      } catch (error) {
+        setIsLoading(false);
+        toast.error("Failed to submit application. Please try again.");
+      }
     }, 1500);
   };
 
@@ -29,10 +63,7 @@ const BarangayClearance = () => {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-primary">CanConnect</span>
-          </Link>
+          <Logo />
         </div>
       </header>
 
@@ -60,28 +91,55 @@ const BarangayClearance = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="Juan" required />
+                    <Input 
+                      id="firstName" 
+                      placeholder="Juan" 
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="middleName">Middle Name</Label>
-                    <Input id="middleName" placeholder="Santos" />
+                    <Input 
+                      id="middleName" 
+                      placeholder="Santos" 
+                      value={formData.middleName}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Dela Cruz" required />
+                    <Input 
+                      id="lastName" 
+                      placeholder="Dela Cruz" 
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="birthDate">Birth Date</Label>
-                    <Input id="birthDate" type="date" required />
+                    <Input 
+                      id="birthDate" 
+                      type="date" 
+                      value={formData.birthDate}
+                      onChange={handleInputChange}
+                      required 
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="civilStatus">Civil Status</Label>
-                  <Select required>
+                  <Select 
+                    value={formData.civilStatus}
+                    onValueChange={(value) => handleSelectChange("civilStatus", value)}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select civil status" />
                     </SelectTrigger>
@@ -104,6 +162,8 @@ const BarangayClearance = () => {
                   <Textarea 
                     id="address" 
                     placeholder="House No., Street, Barangay, Municipality"
+                    value={formData.address}
+                    onChange={handleInputChange}
                     required 
                   />
                 </div>
@@ -111,11 +171,25 @@ const BarangayClearance = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" placeholder="juan@email.com" required />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="juan@email.com" 
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" placeholder="+63 912 345 6789" required />
+                    <Input 
+                      id="phone" 
+                      type="tel" 
+                      placeholder="+63 912 345 6789" 
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required 
+                    />
                   </div>
                 </div>
               </div>
@@ -126,7 +200,11 @@ const BarangayClearance = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="purpose">Purpose</Label>
-                  <Select required>
+                  <Select 
+                    value={formData.purpose}
+                    onValueChange={(value) => handleSelectChange("purpose", value)}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select purpose" />
                     </SelectTrigger>
@@ -145,7 +223,29 @@ const BarangayClearance = () => {
                   <Textarea 
                     id="additionalInfo" 
                     placeholder="Any additional details or requirements"
+                    value={formData.additionalInfo}
+                    onChange={handleInputChange}
                   />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Payment Method</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="paymentMethod">Select Payment Method</Label>
+                  <Select 
+                    value={formData.paymentMethod}
+                    onValueChange={(value) => handleSelectChange("paymentMethod", value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="e-wallet">E-Wallet</SelectItem>
+                      <SelectItem value="cash">Cash Payment</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

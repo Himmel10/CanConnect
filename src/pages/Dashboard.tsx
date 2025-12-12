@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
   FileText, 
-  Shield, 
+  BarChart3,
   Clock, 
   CheckCircle, 
   AlertCircle,
@@ -21,15 +21,24 @@ import {
   Settings,
   X,
   Check,
-  Trash2
+  Trash2,
+  FileCheck,
+  Home,
+  Briefcase,
+  Heart,
+  Zap,
+  UtensilsCrossed
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
 import AIChat from "@/components/AIChat";
+import { CanConnectLogo } from "@/components/CanConnectLogo";
+import { useAuth } from "@/lib/authContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user, logout, isAdmin } = useAuth();
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -69,7 +78,8 @@ const Dashboard = () => {
     },
   ]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     toast.success("Logged out successfully");
     navigate("/");
   };
@@ -128,37 +138,37 @@ const Dashboard = () => {
     {
       category: "Business & Permits",
       items: [
-        { title: "Business Permit", description: "Register or renew business", icon: Shield, link: "/services/business-permit" },
-        { title: "Building Permit", description: "Construction permit application", icon: Shield, link: "/services/building-permit" },
-        { title: "Occupancy Permit", description: "Certificate of Occupancy", icon: Shield, link: "/services/occupancy-permit" },
-        { title: "Fencing Permit", description: "Fencing work permit", icon: Shield, link: "/services/fencing-permit" },
-        { title: "Demolition Permit", description: "Building demolition permit", icon: Shield, link: "/services/demolition-permit" },
-        { title: "Tricycle Franchise", description: "Tricycle franchise permit", icon: Shield, link: "/services/tricycle-franchise" },
-        { title: "Community Tax Certificate", description: "Cedula application", icon: Shield, link: "/services/community-tax-certificate" },
+        { title: "Business Permit", description: "Register or renew business", icon: Briefcase, link: "/services/business-permit" },
+        { title: "Building Permit", description: "Construction permit application", icon: Home, link: "/services/building-permit" },
+        { title: "Occupancy Permit", description: "Certificate of Occupancy", icon: Home, link: "/services/occupancy-permit" },
+        { title: "Fencing Permit", description: "Fencing work permit", icon: Zap, link: "/services/fencing-permit" },
+        { title: "Demolition Permit", description: "Building demolition permit", icon: BarChart3, link: "/services/demolition-permit" },
+        { title: "Tricycle Franchise", description: "Tricycle franchise permit", icon: Briefcase, link: "/services/tricycle-franchise" },
+        { title: "Community Tax Certificate", description: "Cedula application", icon: FileCheck, link: "/services/community-tax-certificate" },
       ]
     },
     {
       category: "Special IDs",
       items: [
-        { title: "Senior Citizen ID", description: "For seniors 60+", icon: Shield, link: "/services/senior-citizen-id" },
-        { title: "PWD ID", description: "Person with Disability ID", icon: Shield, link: "/services/pwd-id" },
-        { title: "Solo Parent ID", description: "Solo Parent Identification Card", icon: Shield, link: "/services/solo-parent-id" },
-        { title: "Police Clearance", description: "Police clearance certificate", icon: Shield, link: "/services/police-clearance" },
+        { title: "Senior Citizen ID", description: "For seniors 60+", icon: User, link: "/services/senior-citizen-id" },
+        { title: "PWD ID", description: "Person with Disability ID", icon: User, link: "/services/pwd-id" },
+        { title: "Solo Parent ID", description: "Solo Parent Identification Card", icon: User, link: "/services/solo-parent-id" },
+        { title: "Police Clearance", description: "Police clearance certificate", icon: FileCheck, link: "/services/police-clearance" },
       ]
     },
     {
       category: "Assistance Programs",
       items: [
-        { title: "Medical/Burial Assistance", description: "Medical or burial assistance benefits", icon: FileText, link: "/services/medical-burial-assistance" },
-        { title: "4Ps Program", description: "Pantawid Pamilyong Pilipino Program", icon: FileText, link: "/services/4ps-program" },
-        { title: "Financial Assistance", description: "Emergency financial assistance", icon: FileText, link: "/services/financial-assistance" },
+        { title: "Medical/Burial Assistance", description: "Medical or burial assistance benefits", icon: Heart, link: "/services/medical-burial-assistance" },
+        { title: "4Ps Program", description: "Pantawid Pamilyong Pilipino Program", icon: Heart, link: "/services/4ps-program" },
+        { title: "Financial Assistance", description: "Emergency financial assistance", icon: BarChart3, link: "/services/financial-assistance" },
       ]
     },
     {
       category: "Health, Agriculture & Sanitation",
       items: [
-        { title: "Health & Sanitation Clearance", description: "Clearance for establishments", icon: Shield, link: "/services/health-sanitation-clearance" },
-        { title: "Veterinary Certificate", description: "Certificate from Municipal Agriculture Office", icon: Shield, link: "/services/veterinary-certificate" },
+        { title: "Health & Sanitation Clearance", description: "Clearance for establishments", icon: Heart, link: "/services/health-sanitation-clearance" },
+        { title: "Veterinary Certificate", description: "Certificate from Municipal Agriculture Office", icon: UtensilsCrossed, link: "/services/veterinary-certificate" },
       ]
     }
   ];
@@ -202,7 +212,7 @@ const Dashboard = () => {
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
+            <CanConnectLogo size="md" />
             <span className="text-xl font-bold text-primary">CanConnect</span>
           </Link>
           <nav className="flex items-center gap-4">
@@ -285,10 +295,10 @@ const Dashboard = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5 text-sm font-semibold">
-                  Juan Dela Cruz
+                  Joey
                 </div>
                 <div className="px-2 text-xs text-muted-foreground">
-                  juan.delacruz@email.com
+                  {user?.email}
                 </div>
                 <DropdownMenuSeparator className="my-2" />
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
@@ -299,6 +309,15 @@ const Dashboard = () => {
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Account Settings</span>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator className="my-2" />
+                    <DropdownMenuItem onClick={() => navigate("/admin-dashboard")}>
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      <span>Admin Dashboard</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator className="my-2" />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -313,7 +332,7 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold">Welcome back, Juan!</h1>
+          <h1 className="mb-2 text-3xl font-bold">Hi!, Joey</h1>
           <p className="text-muted-foreground">
             Access your government services and track your applications
           </p>

@@ -7,18 +7,51 @@ import { Shield, ArrowLeft, Home } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
+import { addApplication } from "@/lib/applicationStorage";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Logo } from "@/components/Logo";
 
 const CertificateOfResidency = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    birthDate: "",
+    age: "",
+    address: "",
+    yearsResident: "",
+    purpose: "",
+    paymentMethod: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     setTimeout(() => {
-      toast.success("Certificate of Residency request submitted successfully!");
-      navigate("/tracking");
+      try {
+        const newApp = addApplication("Certificate of Residency", formData);
+        toast.success(`Application submitted! Reference ID: ${newApp.id}`);
+        navigate(`/payment/${newApp.id}`);
+      } catch (error) {
+        toast.error("Failed to submit application. Please try again.");
+        setIsSubmitting(false);
+      }
     }, 1500);
   };
 
@@ -26,10 +59,7 @@ const CertificateOfResidency = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-primary">CanConnect</span>
-          </Link>
+          <Logo />
         </div>
       </header>
 
@@ -53,17 +83,35 @@ const CertificateOfResidency = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
-                <Input id="fullName" required placeholder="Juan Dela Cruz" />
+                <Input 
+                  id="fullName" 
+                  required 
+                  placeholder="Juan Dela Cruz"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="birthDate">Date of Birth</Label>
-                  <Input id="birthDate" type="date" required />
+                  <Input 
+                    id="birthDate" 
+                    type="date" 
+                    required 
+                    value={formData.birthDate}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="age">Age</Label>
-                  <Input id="age" type="number" required />
+                  <Input 
+                    id="age" 
+                    type="number" 
+                    required 
+                    value={formData.age}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
@@ -74,12 +122,22 @@ const CertificateOfResidency = () => {
                   required 
                   placeholder="House No., Street, Barangay, Municipality"
                   rows={3}
+                  value={formData.address}
+                  onChange={handleInputChange}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="yearsResident">Years of Residency</Label>
-                <Input id="yearsResident" type="number" min="0" required placeholder="e.g., 5" />
+                <Input 
+                  id="yearsResident" 
+                  type="number" 
+                  min="0" 
+                  required 
+                  placeholder="e.g., 5"
+                  value={formData.yearsResident}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="space-y-2">
@@ -89,7 +147,26 @@ const CertificateOfResidency = () => {
                   required 
                   placeholder="State the purpose of this certificate"
                   rows={3}
+                  value={formData.purpose}
+                  onChange={handleInputChange}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select 
+                  value={formData.paymentMethod}
+                  onValueChange={(value) => handleSelectChange("paymentMethod", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="e-wallet">E-Wallet</SelectItem>
+                    <SelectItem value="cash">Cash Payment</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="rounded-lg border bg-muted/50 p-4">

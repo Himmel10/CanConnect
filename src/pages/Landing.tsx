@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Clock, Bell, Shield, Smartphone, CheckCircle } from "lucide-react";
+import { FileText, Clock, Bell, Smartphone, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { CanConnectLogo } from "@/components/CanConnectLogo";
 
 const Landing = () => {
   const services = [
@@ -13,12 +14,12 @@ const Landing = () => {
     {
       title: "Business Permit",
       description: "Register and renew business permits",
-      icon: Shield,
+      icon: FileText,
     },
     {
       title: "Police Clearance",
       description: "Request police clearance certificates",
-      icon: Shield,
+      icon: FileText,
     },
   ];
 
@@ -51,7 +52,7 @@ const Landing = () => {
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
+            <CanConnectLogo size="md" />
             <span className="text-xl font-bold text-primary">CanConnect</span>
           </div>
           <nav className="flex gap-4">

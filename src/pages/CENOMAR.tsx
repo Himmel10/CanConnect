@@ -6,6 +6,7 @@ import { Shield, ArrowLeft, FileText } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
+import { addApplication } from "@/lib/applicationStorage";
 import {
   Select,
   SelectContent,
@@ -13,18 +14,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Logo } from "@/components/Logo";
 
 const CENOMAR = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    dateOfBirth: "",
+    placeOfBirth: "",
+    fatherName: "",
+    motherName: "",
+    purpose: "",
+    copies: "",
+    paymentMethod: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     setTimeout(() => {
-      toast.success("CENOMAR request submitted successfully!");
-      navigate("/tracking");
+      try {
+        const newApp = addApplication("CENOMAR", formData);
+        toast.success(`Application submitted! Reference ID: ${newApp.id}`);
+        navigate(`/payment/${newApp.id}`);
+      } catch (error) {
+        toast.error("Failed to submit application. Please try again.");
+        setIsSubmitting(false);
+      }
     }, 1500);
   };
 
@@ -32,10 +59,7 @@ const CENOMAR = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-primary">CanConnect</span>
-          </Link>
+          <Logo />
         </div>
       </header>
 
@@ -59,34 +83,66 @@ const CENOMAR = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name (as registered)</Label>
-                <Input id="fullName" required placeholder="Juan Dela Cruz" />
+                <Input 
+                  id="fullName" 
+                  required 
+                  placeholder="Juan Dela Cruz"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input id="dateOfBirth" type="date" required />
+                  <Input 
+                    id="dateOfBirth" 
+                    type="date" 
+                    required 
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="placeOfBirth">Place of Birth</Label>
-                  <Input id="placeOfBirth" required placeholder="Candelaria, Quezon" />
+                  <Input 
+                    id="placeOfBirth" 
+                    required 
+                    placeholder="Candelaria, Quezon"
+                    value={formData.placeOfBirth}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="fatherName">Father's Full Name</Label>
-                  <Input id="fatherName" required />
+                  <Input 
+                    id="fatherName" 
+                    required 
+                    value={formData.fatherName}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="motherName">Mother's Full Name</Label>
-                  <Input id="motherName" required />
+                  <Input 
+                    id="motherName" 
+                    required 
+                    value={formData.motherName}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="purpose">Purpose of Request</Label>
-                <Select required>
+                <Select 
+                  value={formData.purpose}
+                  onValueChange={(value) => handleSelectChange("purpose", value)}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select purpose" />
                   </SelectTrigger>
@@ -102,7 +158,32 @@ const CENOMAR = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="copies">Number of Copies</Label>
-                <Input id="copies" type="number" min="1" defaultValue="1" required />
+                <Input 
+                  id="copies" 
+                  type="number" 
+                  min="1" 
+                  defaultValue="1" 
+                  required 
+                  value={formData.copies}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select 
+                  value={formData.paymentMethod}
+                  onValueChange={(value) => handleSelectChange("paymentMethod", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="e-wallet">E-Wallet</SelectItem>
+                    <SelectItem value="cash">Cash Payment</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="rounded-lg border bg-muted/50 p-4">

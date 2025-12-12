@@ -6,6 +6,7 @@ import { Shield, ArrowLeft, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
+import { addApplication } from "@/lib/applicationStorage";
 import {
   Select,
   SelectContent,
@@ -13,18 +14,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Logo } from "@/components/Logo";
 
 const MarriageCertificate = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    husbandName: "",
+    wifeName: "",
+    marriageDate: "",
+    marriagePlace: "",
+    purpose: "",
+    copies: "1",
+    paymentMethod: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     setTimeout(() => {
-      toast.success("Marriage Certificate request submitted successfully!");
-      navigate("/tracking");
+      try {
+        const newApp = addApplication("Marriage Certificate", formData);
+        toast.success(`Application submitted! Reference ID: ${newApp.id}`);
+        navigate(`/payment/${newApp.id}`);
+      } catch (error) {
+        toast.error("Failed to submit application. Please try again.");
+        setIsSubmitting(false);
+      }
     }, 1500);
   };
 
@@ -32,10 +58,7 @@ const MarriageCertificate = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-primary">CanConnect</span>
-          </Link>
+          <Logo />
         </div>
       </header>
 
@@ -60,28 +83,54 @@ const MarriageCertificate = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="husbandName">Husband's Full Name</Label>
-                  <Input id="husbandName" required />
+                  <Input 
+                    id="husbandName" 
+                    required
+                    value={formData.husbandName}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="wifeName">Wife's Maiden Name</Label>
-                  <Input id="wifeName" required />
+                  <Input 
+                    id="wifeName" 
+                    required
+                    value={formData.wifeName}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="marriageDate">Date of Marriage</Label>
-                  <Input id="marriageDate" type="date" required />
+                  <Input 
+                    id="marriageDate" 
+                    type="date" 
+                    required
+                    value={formData.marriageDate}
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="marriagePlace">Place of Marriage</Label>
-                  <Input id="marriagePlace" required placeholder="Candelaria, Quezon" />
+                  <Input 
+                    id="marriagePlace" 
+                    required 
+                    placeholder="Candelaria, Quezon"
+                    value={formData.marriagePlace}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="purpose">Purpose of Request</Label>
-                <Select required>
+                <Select 
+                  value={formData.purpose}
+                  onValueChange={(value) => handleSelectChange("purpose", value)}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select purpose" />
                   </SelectTrigger>
@@ -97,7 +146,31 @@ const MarriageCertificate = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="copies">Number of Copies</Label>
-                <Input id="copies" type="number" min="1" defaultValue="1" required />
+                <Input 
+                  id="copies" 
+                  type="number" 
+                  min="1" 
+                  value={formData.copies}
+                  onChange={handleInputChange}
+                  required 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select 
+                  value={formData.paymentMethod}
+                  onValueChange={(value) => handleSelectChange("paymentMethod", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="e-wallet">E-Wallet</SelectItem>
+                    <SelectItem value="cash">Cash Payment</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="rounded-lg border bg-muted/50 p-4">
